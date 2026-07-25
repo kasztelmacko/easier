@@ -20,9 +20,9 @@ def create_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentPa
         help="Scaffold a folder inside the current project and add shared dependencies",
     )
     create_parser.add_argument(
-        "project_name",
+        "analysis_name",
         type=str,
-        help="Folder name to create inside the current project",
+        help="Folder name for analysis to create inside the current project",
     )
     create_parser.add_argument(
         "--notebook-type",
@@ -46,9 +46,9 @@ def start_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentPar
         help="Start the analysis",
     )
     start_parser.add_argument(
-        "project_name",
+        "analysis_name",
         type=str,
-        help="Folder name to start the analysis in",
+        help="Folder name for analysis to start in",
     )
     return start_parser
 
@@ -63,7 +63,7 @@ def main() -> None:
     if args.command == "create":
         try:
             create_project_scaffold(
-            project_name=args.project_name,
+            analysis_name=args.analysis_name,
             notebook_type=args.notebook_type,
             pkg_manager=args.pkg_manager,
         )
@@ -73,7 +73,7 @@ def main() -> None:
             
     elif args.command == "start":
         try:
-            start_analysis(project_name=args.project_name)
+            start_analysis(analysis_name=args.analysis_name)
         except (ProjectNotFoundError, ProjectConfigNotFoundError, InvalidProjectConfigError, ValueError) as exc:
             print(exc, file=sys.stderr)
             sys.exit(1)

@@ -31,7 +31,7 @@ class ProjectNotFoundError(Exception):
         self.project_root = project_root
         super().__init__(
             f"Project folder not found: {project_root}. "
-            "Run `easier create <project_name>` first."
+            "Run `easier create <analysis_name>` first."
         )
 
 
@@ -40,7 +40,7 @@ class ProjectConfigNotFoundError(Exception):
         self.config_path = config_path
         super().__init__(
             f"Project config not found: {config_path}. "
-            "Run `easier create <project_name>` first."
+            "Run `easier create <analysis_name>` first."
         )
 
 

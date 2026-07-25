@@ -17,12 +17,12 @@ from easier.config import (
 
 
 def create_project_scaffold(
-    project_name: str,
+    analysis_name: str,
     notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
     pkg_manager: PkgManager = DEFAULT_PKG_MANAGER,
 ) -> None:
     project_root = Path.cwd()
-    scaffold_root = project_root / project_name
+    scaffold_root = project_root / analysis_name
 
     InstallDependencies(pkg_manager=pkg_manager).run(root=project_root)
     MakeDirectories().run(root=scaffold_root)
@@ -33,9 +33,9 @@ def create_project_scaffold(
     )
 
 
-def start_analysis(project_name: str) -> None:
+def start_analysis(analysis_name: str) -> None:
     project_root = Path.cwd()
-    scaffold_root = project_root / project_name
+    scaffold_root = project_root / analysis_name
     notebook_type, pkg_manager = load_project_config(scaffold_root)
     RunBashCommands(notebook_type=notebook_type, pkg_manager=pkg_manager).run(
         root=scaffold_root
