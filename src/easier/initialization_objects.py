@@ -55,3 +55,16 @@ class InstallDependencies(Step):
             )
         else:
             raise ValueError(f"Invalid package manager: {self.pkg_manager}")
+
+class RunCurlCommands(Step):
+    def run(self, root: Path) -> None:
+        subprocess.run(
+            [
+                "curl",
+                "-fsSL",
+                "https://docs.marimo.io/CLAUDE.md",
+                "-o",
+                str(root / ".claude" / "prompts" / "marimo.md"),
+            ],
+            check=True,
+        )
