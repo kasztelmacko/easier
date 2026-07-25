@@ -10,9 +10,9 @@ REQUIRED_DEPENDENCIES: tuple[str, ...] = (
     "pandas",
     "plotly",
 )
-COMMON_SKILLS: tuple[str, ...] = ()
-MARIMO_SKILLS: tuple[str, ...] = ("marimo-pair",)
-JUPYTER_SKILLS: tuple[str, ...] = ()
+COMMON_SKILLS: tuple[str, ...] = ("data-science-expert", "deep-research",)
+MARIMO_SKILLS: tuple[str, ...] = ("marimo-pair", "marimo-notebook", "anywidget-generator",)
+JUPYTER_SKILLS: tuple[str, ...] = ("jupyter-notebook",)
 
 NotebookType = Literal["marimo", "jupyter"]
 PkgManager = Literal["poetry", "uv"]
