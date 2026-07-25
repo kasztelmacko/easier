@@ -42,3 +42,9 @@ def start_analysis(analysis_name: str) -> None:
     RunBashCommands(notebook_type=notebook_type, pkg_manager=pkg_manager).run(
         root=scaffold_root
     )
+
+def summarise_analysis(analysis_name: str) -> None:
+    pass
+
+def plan_analysis(analysis_name: str) -> None:
+    pass

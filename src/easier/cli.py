@@ -1,4 +1,9 @@
-from easier.scaffold import create_project_scaffold, start_analysis
+from easier.scaffold import (
+    create_project_scaffold, 
+    start_analysis, 
+    summarise_analysis, 
+    plan_analysis,
+)
 import argparse
 import sys
 from easier.config import (
@@ -8,10 +13,10 @@ from easier.config import (
     DEFAULT_PKG_MANAGER,
 )
 from easier.errors import (
-    InvalidProjectConfigError,
+    InvalidAnalysisConfigError,
     PackageManagerNotFoundError,
-    ProjectConfigNotFoundError,
-    ProjectNotFoundError,
+    AnalysisConfigNotFoundError,
+    AnalysisNotFoundError,
 )
 
 def create_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -52,12 +57,38 @@ def start_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentPar
     )
     return start_parser
 
+def plan_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    plan_parser = subparsers.add_parser(
+        "plan",
+        help="Plan the analysis",
+    )
+    plan_parser.add_argument(
+        "analysis_name",
+        type=str,
+        help="Folder name for analysis to plan",
+    )
+    return plan_parser
+
+def summarise_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    summarise_parser = subparsers.add_parser(
+        "summarise",
+        help="Summarise the analysis",
+    )
+    summarise_parser.add_argument(
+        "analysis_name",
+        type=str,
+        help="Folder name for analysis to summarise",
+    )
+    return summarise_parser
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     create_parser(subparsers)
-    start_parser(subparsers) 
+    start_parser(subparsers)
+    summarise_parser(subparsers)
+    plan_parser(subparsers)
 
     args = parser.parse_args()
     if args.command == "create":
@@ -67,14 +98,28 @@ def main() -> None:
             notebook_type=args.notebook_type,
             pkg_manager=args.pkg_manager,
         )
-        except (PackageManagerNotFoundError, ProjectNotFoundError, ProjectConfigNotFoundError, InvalidProjectConfigError, ValueError) as exc:
+        except (PackageManagerNotFoundError, AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
             print(exc, file=sys.stderr)
             sys.exit(1)
             
     elif args.command == "start":
         try:
             start_analysis(analysis_name=args.analysis_name)
-        except (ProjectNotFoundError, ProjectConfigNotFoundError, InvalidProjectConfigError, ValueError) as exc:
+        except (AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
+            print(exc, file=sys.stderr)
+            sys.exit(1)
+
+    elif args.command == "summarise":
+        try:
+            summarise_analysis(analysis_name=args.analysis_name)
+        except (AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
+            print(exc, file=sys.stderr)
+            sys.exit(1)
+
+    elif args.command == "plan":
+        try:
+            plan_analysis(analysis_name=args.analysis_name)
+        except (AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
             print(exc, file=sys.stderr)
             sys.exit(1)
 

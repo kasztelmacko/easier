@@ -9,18 +9,18 @@ from easier.config import (
     EASIER_CONFIG_FILENAME,
 )
 from easier.errors import (
-    InvalidProjectConfigError,
-    ProjectConfigNotFoundError,
-    ProjectNotFoundError,
+    InvalidAnalysisConfigError,
+    AnalysisConfigNotFoundError,
+    AnalysisNotFoundError,
 )
 
 def load_project_config(root: Path) -> tuple[NotebookType, PkgManager]:
     if not root.is_dir():
-        raise ProjectNotFoundError(project_root=root)
+        raise AnalysisNotFoundError(project_root=root)
 
     config_path: Path = root / EASIER_CONFIG_FILENAME
     if not config_path.is_file():
-        raise ProjectConfigNotFoundError(config_path=config_path)
+        raise AnalysisConfigNotFoundError(config_path=config_path)
 
     with config_path.open("rb") as config_file:
         data: dict[str, Any] = tomllib.load(config_file)
@@ -29,12 +29,12 @@ def load_project_config(root: Path) -> tuple[NotebookType, PkgManager]:
     pkg_manager: PkgManager | None = data.get("pkg_manager")
 
     if notebook_type not in VALID_NOTEBOOK_TYPES:
-        raise InvalidProjectConfigError(
+        raise InvalidAnalysisConfigError(
             config_path=config_path,
             reason=f"invalid or missing notebook_type {notebook_type!r}",
         )
     if pkg_manager not in VALID_PKG_MANAGERS:
-        raise InvalidProjectConfigError(
+        raise InvalidAnalysisConfigError(
             config_path=config_path,
             reason=f"invalid or missing pkg_manager {pkg_manager!r}",
         )

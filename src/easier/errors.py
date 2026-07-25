@@ -26,7 +26,7 @@ class PackageManagerNotFoundError(Exception):
         )
 
 
-class ProjectNotFoundError(Exception):
+class AnalysisNotFoundError(Exception):
     def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
         super().__init__(
@@ -35,7 +35,7 @@ class ProjectNotFoundError(Exception):
         )
 
 
-class ProjectConfigNotFoundError(Exception):
+class AnalysisConfigNotFoundError(Exception):
     def __init__(self, config_path: Path) -> None:
         self.config_path = config_path
         super().__init__(
@@ -44,7 +44,7 @@ class ProjectConfigNotFoundError(Exception):
         )
 
 
-class InvalidProjectConfigError(Exception):
+class InvalidAnalysisConfigError(Exception):
     def __init__(self, config_path: Path, reason: str) -> None:
         self.config_path = config_path
         self.reason = reason
