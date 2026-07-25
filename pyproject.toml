@@ -3,11 +3,11 @@ name = "easier"
 version = "0.1.0"
 description = ""
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
-    "marimo>=0.23.15",
-    "pandas>=3.0.5",
-    "plotly>=6.9.0",
+    "marimo",
+    "pandas",
+    "plotly",
 ]
 
 [project.scripts]
