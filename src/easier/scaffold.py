@@ -2,6 +2,7 @@ from easier.initialization_objects import (
     MakeDirectories,
     MakeFiles,
     InstallDependencies,
+    InstallSkills,
     RunCurlCommands,
     RunBashCommands,
     WriteConfig,
@@ -28,6 +29,7 @@ def create_project_scaffold(
     MakeDirectories().run(root=scaffold_root)
     MakeFiles(notebook_type=notebook_type).run(root=scaffold_root)
     RunCurlCommands().run(root=scaffold_root)
+    InstallSkills(notebook_type=notebook_type).run(root=scaffold_root)
     WriteConfig(notebook_type=notebook_type, pkg_manager=pkg_manager).run(
         root=scaffold_root
     )

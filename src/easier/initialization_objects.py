@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 from easier.config import (
     REQUIRED_DEPENDENCIES,
     DEFAULT_NOTEBOOK_TYPE,
@@ -9,6 +10,10 @@ from easier.config import (
     PkgManager,
     EASIER_CONFIG_FILENAME,
     VALID_PKG_MANAGERS,
+    SKILLS_DIR,
+    COMMON_SKILLS,
+    MARIMO_SKILLS,
+    JUPYTER_SKILLS,
 )
 from easier.errors import PackageManagerNotFoundError
 from easier.utils import load_project_config
@@ -92,6 +97,31 @@ class RunCurlCommands(Step):
             ],
             check=True,
         )
+
+
+class InstallSkills(Step):
+    def __init__(self, notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE) -> None:
+        self.notebook_type: NotebookType = notebook_type
+
+    def _copy_skills(self, root: Path, skill_names: tuple[str, ...]) -> None:
+        for skill_name in skill_names:
+            source = SKILLS_DIR / skill_name
+            destination = root / ".agents" / "skills" / skill_name
+            if not source.is_dir():
+                print(
+                    f"Warning: packaged skill '{skill_name}' not found at {source}; "
+                    "skipping.",
+                    file=sys.stderr,
+                )
+                continue
+            shutil.copytree(source, destination, dirs_exist_ok=True)
+
+    def run(self, root: Path) -> None:
+        self._copy_skills(root, COMMON_SKILLS)
+        if self.notebook_type == "marimo":
+            self._copy_skills(root, MARIMO_SKILLS)
+        elif self.notebook_type == "jupyter":
+            self._copy_skills(root, JUPYTER_SKILLS)
 
 
 class WriteConfig(Step):
