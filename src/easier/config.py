@@ -1,5 +1,8 @@
 from typing import Literal
 
+
+EASIER_CONFIG_FILENAME: str = ".easier.toml"
+
 REQUIRED_DEPENDENCIES = (
     "marimo>=0.23.15",
     "pandas",

@@ -3,13 +3,15 @@ import shutil
 import subprocess
 from easier.config import (
     REQUIRED_DEPENDENCIES,
-    VALID_PKG_MANAGERS,
+    DEFAULT_NOTEBOOK_TYPE,
     DEFAULT_PKG_MANAGER,
     NotebookType,
     PkgManager,
+    EASIER_CONFIG_FILENAME,
+    VALID_PKG_MANAGERS,
 )
 from easier.errors import PackageManagerNotFoundError
-
+from easier.utils import load_project_config
 
 class Step:
     def run(self, root: Path) -> None:
@@ -54,7 +56,7 @@ class InstallDependencies(Step):
             )
 
         if shutil.which(self.pkg_manager) is None:
-            available = [
+            available: list[PkgManager] = [
                 name for name in VALID_PKG_MANAGERS if shutil.which(name) is not None
             ]
             raise PackageManagerNotFoundError(
@@ -77,6 +79,7 @@ class InstallDependencies(Step):
         else:
             raise ValueError(f"Invalid package manager: {self.pkg_manager}")
 
+
 class RunCurlCommands(Step):
     def run(self, root: Path) -> None:
         subprocess.run(
@@ -89,3 +92,47 @@ class RunCurlCommands(Step):
             ],
             check=True,
         )
+
+
+class WriteConfig(Step):
+    def __init__(
+        self,
+        notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
+        pkg_manager: PkgManager = DEFAULT_PKG_MANAGER,
+    ) -> None:
+        self.notebook_type: NotebookType = notebook_type
+        self.pkg_manager: PkgManager = pkg_manager
+
+    def run(self, root: Path) -> None:
+        config_path: Path = root / EASIER_CONFIG_FILENAME
+        config_path.write_text(
+            f'notebook_type = "{self.notebook_type}"\n'
+            f'pkg_manager = "{self.pkg_manager}"\n',
+            encoding="utf-8",
+        )
+
+
+class RunBashCommands(Step):
+    def __init__(
+        self,
+        notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
+        pkg_manager: PkgManager = DEFAULT_PKG_MANAGER,
+    ) -> None:
+        self.notebook_type: NotebookType = notebook_type
+        self.pkg_manager: PkgManager = pkg_manager
+
+    def run(self, root: Path) -> None:
+        if self.notebook_type == "marimo":
+            subprocess.run(
+                [self.pkg_manager, "run", "marimo", "edit", "--watch", "notebook.py"],
+                cwd=root,
+                check=True,
+            )
+        elif self.notebook_type == "jupyter":
+            subprocess.run(
+                [self.pkg_manager, "run", "jupyter", "notebook.ipynb"],
+                cwd=root,
+                check=True,
+            )
+        else:
+            raise ValueError(f"Invalid notebook type: {self.notebook_type}")

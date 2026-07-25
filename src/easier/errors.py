@@ -1,4 +1,5 @@
-from easier.config import VALID_PKG_MANAGERS
+from easier.config import VALID_NOTEBOOK_TYPES, VALID_PKG_MANAGERS
+from pathlib import Path
 
 
 class PackageManagerNotFoundError(Exception):
@@ -22,4 +23,35 @@ class PackageManagerNotFoundError(Exception):
         return (
             f"{self.selected} was not found on PATH. "
             f"None of the supported package managers ({supported}) were detected."
+        )
+
+
+class ProjectNotFoundError(Exception):
+    def __init__(self, project_root: Path) -> None:
+        self.project_root = project_root
+        super().__init__(
+            f"Project folder not found: {project_root}. "
+            "Run `easier create <project_name>` first."
+        )
+
+
+class ProjectConfigNotFoundError(Exception):
+    def __init__(self, config_path: Path) -> None:
+        self.config_path = config_path
+        super().__init__(
+            f"Project config not found: {config_path}. "
+            "Run `easier create <project_name>` first."
+        )
+
+
+class InvalidProjectConfigError(Exception):
+    def __init__(self, config_path: Path, reason: str) -> None:
+        self.config_path = config_path
+        self.reason = reason
+        valid_notebooks = ", ".join(VALID_NOTEBOOK_TYPES)
+        valid_pkg_managers = ", ".join(VALID_PKG_MANAGERS)
+        super().__init__(
+            f"Invalid project config at {config_path}: {reason}. "
+            f"Expected notebook_type in ({valid_notebooks}) and "
+            f"pkg_manager in ({valid_pkg_managers})."
         )

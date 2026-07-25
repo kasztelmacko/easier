@@ -1,19 +1,20 @@
-from easier.scaffold import create_project_scaffold
+from easier.scaffold import create_project_scaffold, start_analysis
 import argparse
 import sys
 from easier.config import (
-    VALID_NOTEBOOK_TYPES, 
-    VALID_PKG_MANAGERS, 
-    DEFAULT_NOTEBOOK_TYPE, 
-    DEFAULT_PKG_MANAGER
+    VALID_NOTEBOOK_TYPES,
+    VALID_PKG_MANAGERS,
+    DEFAULT_NOTEBOOK_TYPE,
+    DEFAULT_PKG_MANAGER,
 )
-from easier.errors import PackageManagerNotFoundError
+from easier.errors import (
+    InvalidProjectConfigError,
+    PackageManagerNotFoundError,
+    ProjectConfigNotFoundError,
+    ProjectNotFoundError,
+)
 
-
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
+def create_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
     create_parser = subparsers.add_parser(
         "create",
         help="Scaffold a folder inside the current project and add shared dependencies",
@@ -37,16 +38,45 @@ def main() -> None:
         help="The package manager to use",
         default=DEFAULT_PKG_MANAGER,
     )
+    return create_parser
+
+def start_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    start_parser = subparsers.add_parser(
+        "start",
+        help="Start the analysis",
+    )
+    start_parser.add_argument(
+        "project_name",
+        type=str,
+        help="Folder name to start the analysis in",
+    )
+    return start_parser
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    create_parser(subparsers)
+    start_parser(subparsers) 
 
     args = parser.parse_args()
-
     if args.command == "create":
         try:
             create_project_scaffold(
-                project_name=args.project_name,
-                notebook_type=args.notebook_type,
-                pkg_manager=args.pkg_manager,
-            )
-        except PackageManagerNotFoundError as exc:
+            project_name=args.project_name,
+            notebook_type=args.notebook_type,
+            pkg_manager=args.pkg_manager,
+        )
+        except (PackageManagerNotFoundError, ProjectNotFoundError, ProjectConfigNotFoundError, InvalidProjectConfigError, ValueError) as exc:
             print(exc, file=sys.stderr)
             sys.exit(1)
+            
+    elif args.command == "start":
+        try:
+            start_analysis(project_name=args.project_name)
+        except (ProjectNotFoundError, ProjectConfigNotFoundError, InvalidProjectConfigError, ValueError) as exc:
+            print(exc, file=sys.stderr)
+            sys.exit(1)
+
+if __name__ == "__main__":
+    main()
