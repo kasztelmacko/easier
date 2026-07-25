@@ -1,5 +1,13 @@
 from easier.scaffold import create_project_scaffold
 import argparse
+import sys
+from easier.config import (
+    VALID_NOTEBOOK_TYPES, 
+    VALID_PKG_MANAGERS, 
+    DEFAULT_NOTEBOOK_TYPE, 
+    DEFAULT_PKG_MANAGER
+)
+from easier.errors import PackageManagerNotFoundError
 
 
 def main() -> None:
@@ -18,23 +26,27 @@ def main() -> None:
     create_parser.add_argument(
         "--notebook-type",
         type=str.lower,
-        choices=["marimo", "jupyter"],
+        choices=VALID_NOTEBOOK_TYPES,
         help="The type of notebook to create",
-        default="marimo",
+        default=DEFAULT_NOTEBOOK_TYPE,
     )
     create_parser.add_argument(
         "--pkg-manager",
         type=str.lower,
-        choices=["poetry", "uv"],
+        choices=VALID_PKG_MANAGERS,
         help="The package manager to use",
-        default="poetry",
+        default=DEFAULT_PKG_MANAGER,
     )
 
     args = parser.parse_args()
 
     if args.command == "create":
-        create_project_scaffold(
-            project_name=args.project_name,
-            notebook_type=args.notebook_type,
-            pkg_manager=args.pkg_manager,
-        )
+        try:
+            create_project_scaffold(
+                project_name=args.project_name,
+                notebook_type=args.notebook_type,
+                pkg_manager=args.pkg_manager,
+            )
+        except PackageManagerNotFoundError as exc:
+            print(exc, file=sys.stderr)
+            sys.exit(1)
