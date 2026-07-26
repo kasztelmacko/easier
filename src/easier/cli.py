@@ -1,16 +1,20 @@
-from easier.scaffold import (
-    create_project_scaffold, 
-    start_analysis, 
-    summarise_analysis, 
-    plan_analysis,
-)
-import argparse
+from collections.abc import Callable, Sequence
 import sys
+from typing import Annotated, cast
+
+import typer
+
+from easier.scaffold import (
+    create_project_scaffold,
+    start_analysis
+)
 from easier.config import (
     VALID_NOTEBOOK_TYPES,
     VALID_PKG_MANAGERS,
     DEFAULT_NOTEBOOK_TYPE,
     DEFAULT_PKG_MANAGER,
+    NotebookType,
+    PkgManager,
 )
 from easier.errors import (
     InvalidAnalysisConfigError,
@@ -19,109 +23,92 @@ from easier.errors import (
     AnalysisNotFoundError,
 )
 
-def create_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    create_parser = subparsers.add_parser(
-        "create",
-        help="Scaffold a folder inside the current project and add shared dependencies",
-    )
-    create_parser.add_argument(
-        "analysis_name",
-        type=str,
-        help="Folder name for analysis to create inside the current project",
-    )
-    create_parser.add_argument(
-        "--notebook-type",
-        type=str.lower,
-        choices=VALID_NOTEBOOK_TYPES,
-        help="The type of notebook to create",
-        default=DEFAULT_NOTEBOOK_TYPE,
-    )
-    create_parser.add_argument(
-        "--pkg-manager",
-        type=str.lower,
-        choices=VALID_PKG_MANAGERS,
-        help="The package manager to use",
-        default=DEFAULT_PKG_MANAGER,
-    )
-    return create_parser
+app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
 
-def start_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    start_parser = subparsers.add_parser(
-        "start",
-        help="Start the analysis",
-    )
-    start_parser.add_argument(
-        "analysis_name",
-        type=str,
-        help="Folder name for analysis to start in",
-    )
-    return start_parser
+CLI_ERRORS = (
+    PackageManagerNotFoundError,
+    AnalysisNotFoundError,
+    AnalysisConfigNotFoundError,
+    InvalidAnalysisConfigError,
+    ValueError,
+)
 
-def plan_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    plan_parser = subparsers.add_parser(
-        "plan",
-        help="Plan the analysis",
-    )
-    plan_parser.add_argument(
-        "analysis_name",
-        type=str,
-        help="Folder name for analysis to plan",
-    )
-    return plan_parser
 
-def summarise_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    summarise_parser = subparsers.add_parser(
-        "summarise",
-        help="Summarise the analysis",
+def run_command(action: Callable[[], None]) -> None:
+    try:
+        action()
+    except CLI_ERRORS as exc:
+        print(exc, file=sys.stderr)
+        raise typer.Exit(1) from None
+
+
+def parse_choice(value: str, valid: Sequence[str]) -> str:
+    normalized = value.lower()
+    if normalized not in valid:
+        choices = ", ".join(repr(item) for item in valid)
+        raise typer.BadParameter(f"'{value}' is not one of {choices}.")
+    return normalized
+
+
+def parse_notebook_type(value: str) -> NotebookType:
+    return cast(NotebookType, parse_choice(value, VALID_NOTEBOOK_TYPES))
+
+
+def parse_pkg_manager(value: str) -> PkgManager:
+    return cast(PkgManager, parse_choice(value, VALID_PKG_MANAGERS))
+
+
+@app.command()
+def create(
+    analysis_name: Annotated[
+        str,
+        typer.Argument(help="Folder name for analysis to create inside the current project"),
+    ],
+    notebook_type: Annotated[
+        NotebookType,
+        typer.Option(
+            "--notebook-type",
+            "-n",
+            help="The type of notebook to create",
+            parser=parse_notebook_type,
+            metavar="|".join(VALID_NOTEBOOK_TYPES),
+        ),
+    ] = DEFAULT_NOTEBOOK_TYPE,
+    pkg_manager: Annotated[
+        PkgManager,
+        typer.Option(
+            "--pkg-manager",
+            "-p",
+            help="The package manager to use",
+            parser=parse_pkg_manager,
+            metavar="|".join(VALID_PKG_MANAGERS),
+        ),
+    ] = DEFAULT_PKG_MANAGER,
+) -> None:
+    """Scaffold a folder inside the current project and add shared dependencies."""
+    run_command(
+        lambda: create_project_scaffold(
+            analysis_name=analysis_name,
+            notebook_type=notebook_type,
+            pkg_manager=pkg_manager,
+        )
     )
-    summarise_parser.add_argument(
-        "analysis_name",
-        type=str,
-        help="Folder name for analysis to summarise",
-    )
-    return summarise_parser
+
+
+@app.command()
+def start(
+    analysis_name: Annotated[
+        str,
+        typer.Argument(help="Folder name for analysis to start in"),
+    ],
+) -> None:
+    """Start the analysis."""
+    run_command(lambda: start_analysis(analysis_name=analysis_name))
+
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    app()
 
-    create_parser(subparsers)
-    start_parser(subparsers)
-    summarise_parser(subparsers)
-    plan_parser(subparsers)
-
-    args = parser.parse_args()
-    if args.command == "create":
-        try:
-            create_project_scaffold(
-            analysis_name=args.analysis_name,
-            notebook_type=args.notebook_type,
-            pkg_manager=args.pkg_manager,
-        )
-        except (PackageManagerNotFoundError, AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
-            print(exc, file=sys.stderr)
-            sys.exit(1)
-            
-    elif args.command == "start":
-        try:
-            start_analysis(analysis_name=args.analysis_name)
-        except (AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
-            print(exc, file=sys.stderr)
-            sys.exit(1)
-
-    elif args.command == "summarise":
-        try:
-            summarise_analysis(analysis_name=args.analysis_name)
-        except (AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
-            print(exc, file=sys.stderr)
-            sys.exit(1)
-
-    elif args.command == "plan":
-        try:
-            plan_analysis(analysis_name=args.analysis_name)
-        except (AnalysisNotFoundError, AnalysisConfigNotFoundError, InvalidAnalysisConfigError, ValueError) as exc:
-            print(exc, file=sys.stderr)
-            sys.exit(1)
 
 if __name__ == "__main__":
     main()

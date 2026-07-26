@@ -16,7 +16,6 @@ from easier.config import (
     JUPYTER_SKILLS,
 )
 from easier.errors import PackageManagerNotFoundError
-from easier.utils import load_project_config
 
 class Step:
     def run(self, root: Path) -> None:

@@ -8,6 +8,7 @@ dependencies = [
     "marimo",
     "pandas",
     "plotly",
+    "typer>=0.27.0",
 ]
 
 [project.scripts]

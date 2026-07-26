@@ -6,8 +6,8 @@ from easier.initialization_objects import (
     RunCurlCommands,
     RunBashCommands,
     WriteConfig,
-    load_project_config,
 )
+from easier.utils import load_project_config
 from pathlib import Path
 from easier.config import (
     DEFAULT_NOTEBOOK_TYPE,
@@ -42,9 +42,3 @@ def start_analysis(analysis_name: str) -> None:
     RunBashCommands(notebook_type=notebook_type, pkg_manager=pkg_manager).run(
         root=scaffold_root
     )
-
-def summarise_analysis(analysis_name: str) -> None:
-    pass
-
-def plan_analysis(analysis_name: str) -> None:
-    pass
