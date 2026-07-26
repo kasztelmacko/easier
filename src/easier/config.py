@@ -11,6 +11,7 @@ REQUIRED_DEPENDENCIES: tuple[str, ...] = (
     "plotly",
 )
 COMMON_SKILLS: tuple[str, ...] = ("data-science-expert", "deep-research",)
+CONVERSATION_SKILLS: tuple[str, ...] = ("plan", "summarize")
 MARIMO_SKILLS: tuple[str, ...] = ("marimo-pair", "marimo-notebook", "anywidget-generator",)
 JUPYTER_SKILLS: tuple[str, ...] = ("jupyter-notebook",)
 

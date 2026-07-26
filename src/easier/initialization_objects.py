@@ -12,23 +12,23 @@ from easier.config import (
     VALID_PKG_MANAGERS,
     SKILLS_DIR,
     COMMON_SKILLS,
+    CONVERSATION_SKILLS,
     MARIMO_SKILLS,
     JUPYTER_SKILLS,
 )
 from easier.errors import PackageManagerNotFoundError
-from rich.console import Console
-from rich_pyfiglet import RichFiglet
+from easier.cli_styling import print_figlet, print_normal_help, print_skills_help
 
 
-class PrintPackageName():
-    def create(self, root: Path) -> None:
-        console = Console()
-        rich_fig = RichFiglet(
-            "easier",
-            font="ansi_shadow",
-            colors=["white"],
-        )
-        console.print(rich_fig)
+class PrintToConsole():
+    def create(self) -> None:
+        print_figlet()
+        print_normal_help()
+        print_skills_help()
+
+    def help(self) -> None:
+        print_figlet()
+        print_normal_help()
 
 
 class MakeDirectories():
@@ -126,6 +126,7 @@ class InstallSkills():
 
     def create(self, root: Path) -> None:
         self._copy_skills(root, COMMON_SKILLS)
+        self._copy_skills(root, CONVERSATION_SKILLS)
         if self.notebook_type == "marimo":
             self._copy_skills(root, MARIMO_SKILLS)
         elif self.notebook_type == "jupyter":
@@ -158,11 +159,6 @@ class RunBashCommands():
     ) -> None:
         self.notebook_type: NotebookType = notebook_type
         self.pkg_manager: PkgManager = pkg_manager
-
-    def create(self) -> None:
-        subprocess.run(
-            [self.pkg_manager, "run", "easier", "--help"]
-        )
 
     def start(self, root: Path) -> None:
         if self.notebook_type == "marimo":

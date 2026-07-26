@@ -10,6 +10,7 @@ from easier.config import (
     NotebookType,
     PkgManager,
     EASIER_CONFIG_FILENAME,
+    SKILLS_DIR,
 )
 from easier.errors import (
     InvalidAnalysisConfigError,
@@ -48,6 +49,31 @@ def parse_notebook_type(value: str) -> NotebookType:
 
 def parse_pkg_manager(value: str) -> PkgManager:
     return cast(PkgManager, parse_choice(value, VALID_PKG_MANAGERS))
+
+
+def read_skill_description(skill_name: str) -> str:
+    """Return the one-line frontmatter description from a packaged skill."""
+    skill_path = SKILLS_DIR / skill_name / "SKILL.md"
+    if not skill_path.is_file():
+        return ""
+
+    text = skill_path.read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        return ""
+
+    end = text.find("\n---", 3)
+    if end == -1:
+        return ""
+
+    for line in text[3:end].splitlines():
+        stripped = line.strip()
+        if stripped.startswith("description:"):
+            value = stripped[len("description:") :].strip()
+            if value.startswith((">", "|")):
+                return ""
+            return value.strip("\"'")
+    return ""
+
 
 def load_project_config(root: Path) -> tuple[NotebookType, PkgManager]:
     if not root.is_dir():

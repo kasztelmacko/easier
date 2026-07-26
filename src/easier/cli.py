@@ -1,6 +1,8 @@
 from typing import Annotated
 
+import click
 import typer
+from typer.core import TyperGroup
 
 from easier.scaffold import (
     create_project_scaffold,
@@ -15,8 +17,21 @@ from easier.config import (
     PkgManager,
 )
 from easier.utils import run_command, parse_notebook_type, parse_pkg_manager
+from easier.initialization_objects import PrintToConsole
 
-app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
+
+class EasierTyperGroup(TyperGroup):
+    """Thin hook: delegates all help rendering to PrintToConsole."""
+
+    def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        PrintToConsole().help()
+
+
+app = typer.Typer(
+    cls=EasierTyperGroup,
+    no_args_is_help=True,
+    pretty_exceptions_enable=False,
+)
 
 
 @app.command()
