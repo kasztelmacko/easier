@@ -28,8 +28,6 @@ from easier.initialization_objects import PrintToConsole
 
 
 class EasierTyperGroup(TyperGroup):
-    """Thin hook: delegates all help rendering to PrintToConsole."""
-
     def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
         PrintToConsole().help()
 
