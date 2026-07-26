@@ -39,6 +39,7 @@ def start_analysis(analysis_name: str) -> None:
     project_root = Path.cwd()
     analysis_root = project_root / analysis_name
     notebook_type, pkg_manager = load_analysis_config(analysis_root)
+    PrintToConsole(notebook_type=notebook_type).start()
     RunBashCommands(notebook_type=notebook_type, pkg_manager=pkg_manager).start(
         root=analysis_root
     )

@@ -18,10 +18,13 @@ from easier.config import (
     JUPYTER_SKILLS,
 )
 from easier.errors import PackageManagerNotFoundError
-from easier.cli_styling import print_figlet, print_normal_help, print_skills_help
+from easier.cli_styling import print_figlet, print_normal_help, print_skills_help, print_start
 
 
 class PrintToConsole():
+    def __init__(self, notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE) -> None:
+        self.notebook_type: NotebookType = notebook_type
+
     def create(self) -> None:
         print_figlet()
         print_normal_help()
@@ -30,6 +33,11 @@ class PrintToConsole():
     def help(self) -> None:
         print_figlet()
         print_normal_help()
+
+    def start(self) -> None:
+        if self.notebook_type == "marimo":
+            print_start()
+
 
 
 class MakeDirectories():
@@ -103,17 +111,21 @@ class InstallDependencies():
 
 
 class RunCurlCommands():
+    def __init__(self, notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE) -> None:
+        self.notebook_type: NotebookType = notebook_type
+
     def create(self, root: Path) -> None:
-        subprocess.run(
-            [
-                "curl",
-                "-fsSL",
-                "https://docs.marimo.io/CLAUDE.md",
-                "-o",
-                str(root / ".agents" / "prompts" / "marimo.md"),
-            ],
-            check=True,
-        )
+        if self.notebook_type == "marimo":
+            subprocess.run(
+                [
+                    "curl",
+                    "-fsSL",
+                    "https://docs.marimo.io/CLAUDE.md",
+                    "-o",
+                    str(root / ".agents" / "prompts" / "marimo.md"),
+                ],
+                check=True,
+            )
 
 
 class InstallSkills():

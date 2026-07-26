@@ -35,6 +35,20 @@ def print_figlet() -> None:
     console.print(rich_fig)
 
 
+def print_start() -> None:
+    console = Console()
+    console.print(
+        Panel(
+            Text.from_markup(
+                "To allow your agent to interact with the notebook, remember to run\n"
+                "[bold]`/marimo-pair pair with me on notebook.py`[/bold]"
+            ),
+            title="Start the analysis",
+            border_style="white",
+            padding=(1, 1),
+        ),
+    )
+
 def print_normal_help() -> None:
     from easier.cli import app
 
