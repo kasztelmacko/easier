@@ -75,7 +75,7 @@ def read_skill_description(skill_name: str) -> str:
     return ""
 
 
-def load_project_config(root: Path) -> tuple[NotebookType, PkgManager]:
+def load_analysis_config(root: Path) -> tuple[NotebookType, PkgManager]:
     if not root.is_dir():
         raise AnalysisNotFoundError(project_root=root)
 

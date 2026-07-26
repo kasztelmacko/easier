@@ -13,7 +13,7 @@ class PackageManagerNotFoundError(Exception):
         if self.available:
             detected = ", ".join(self.available)
             suggestion = ", ".join(
-                f"easier create <project> --pkg-manager {name}"
+                f"easier create <analysis> --pkg-manager {name}"
                 for name in self.available
             )
             return (
@@ -30,7 +30,7 @@ class AnalysisNotFoundError(Exception):
     def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
         super().__init__(
-            f"Project folder not found: {project_root}. "
+            f"Analysis folder not found: {project_root}. "
             "Run `easier create <analysis_name>` first."
         )
 
@@ -39,7 +39,7 @@ class AnalysisConfigNotFoundError(Exception):
     def __init__(self, config_path: Path) -> None:
         self.config_path = config_path
         super().__init__(
-            f"Project config not found: {config_path}. "
+            f"Analysis config not found: {config_path}. "
             "Run `easier create <analysis_name>` first."
         )
 
@@ -51,7 +51,7 @@ class InvalidAnalysisConfigError(Exception):
         valid_notebooks = ", ".join(VALID_NOTEBOOK_TYPES)
         valid_pkg_managers = ", ".join(VALID_PKG_MANAGERS)
         super().__init__(
-            f"Invalid project config at {config_path}: {reason}. "
+            f"Invalid analysis config at {config_path}: {reason}. "
             f"Expected notebook_type in ({valid_notebooks}) and "
             f"pkg_manager in ({valid_pkg_managers})."
         )

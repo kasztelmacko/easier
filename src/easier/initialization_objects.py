@@ -11,6 +11,7 @@ from easier.config import (
     EASIER_CONFIG_FILENAME,
     VALID_PKG_MANAGERS,
     SKILLS_DIR,
+    TEMPLATES_DIR,
     COMMON_SKILLS,
     CONVERSATION_SKILLS,
     MARIMO_SKILLS,
@@ -51,6 +52,11 @@ class MakeFiles():
         (root / "context" / "analysis_progress.md").touch()
         (root / "context" / "analysis_assistant_notes.md").touch()
         (root / "context" / "analysis_user_notes.md").touch()
+
+        shutil.copy(
+            TEMPLATES_DIR / "analysis_rules.md",
+            root / ".agents" / "prompts" / "analysis_rules.md",
+        )
 
         if self.notebook_type == "marimo":
             (root / "notebook.py").touch()

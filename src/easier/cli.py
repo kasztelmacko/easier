@@ -5,7 +5,7 @@ import typer
 from typer.core import TyperGroup
 
 from easier.scaffold import (
-    create_project_scaffold,
+    create_analysis_scaffold,
     start_analysis
 )
 from easier.config import (
@@ -61,9 +61,9 @@ def create(
         ),
     ] = DEFAULT_PKG_MANAGER,
 ) -> None:
-    """Scaffold a folder inside the current project and add shared dependencies."""
+    """Scaffold a analysis structure inside the current project and add shared dependencies."""
     run_command(
-        lambda: create_project_scaffold(
+        lambda: create_analysis_scaffold(
             analysis_name=analysis_name,
             notebook_type=notebook_type,
             pkg_manager=pkg_manager,

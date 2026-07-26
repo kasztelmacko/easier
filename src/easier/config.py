@@ -4,6 +4,7 @@ from pathlib import Path
 
 EASIER_CONFIG_FILENAME: str = ".easier.toml"
 SKILLS_DIR: Path = Path(__file__).resolve().parent / "skills"
+TEMPLATES_DIR: Path = Path(__file__).resolve().parent / "templates"
 
 REQUIRED_DEPENDENCIES: tuple[str, ...] = (
     "marimo>=0.23.15",
