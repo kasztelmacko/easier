@@ -35,6 +35,7 @@ class MakeDirectories():
     def create(self, root: Path) -> None:
         root.mkdir()
         (root / "context").mkdir()
+        (root / "context" / "other_context").mkdir()
         (root / ".agents").mkdir()
         (root / ".agents" / "prompts").mkdir()
         (root / ".agents" / "skills").mkdir()
@@ -46,8 +47,10 @@ class MakeFiles():
 
     def create(self, root: Path) -> None:
         (root / "context" / "analysis_context.md").touch()
+        (root / "context" / "analysis_plan.md").touch()
         (root / "context" / "analysis_progress.md").touch()
-        (root / "context" / "analysis_notes.md").touch()
+        (root / "context" / "analysis_assistant_notes.md").touch()
+        (root / "context" / "analysis_user_notes.md").touch()
 
         if self.notebook_type == "marimo":
             (root / "notebook.py").touch()
