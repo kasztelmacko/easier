@@ -1,6 +1,4 @@
-from collections.abc import Callable, Sequence
-import sys
-from typing import Annotated, cast
+from typing import Annotated
 
 import typer
 
@@ -16,46 +14,9 @@ from easier.config import (
     NotebookType,
     PkgManager,
 )
-from easier.errors import (
-    InvalidAnalysisConfigError,
-    PackageManagerNotFoundError,
-    AnalysisConfigNotFoundError,
-    AnalysisNotFoundError,
-)
+from easier.utils import run_command, parse_notebook_type, parse_pkg_manager
 
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
-
-CLI_ERRORS = (
-    PackageManagerNotFoundError,
-    AnalysisNotFoundError,
-    AnalysisConfigNotFoundError,
-    InvalidAnalysisConfigError,
-    ValueError,
-)
-
-
-def run_command(action: Callable[[], None]) -> None:
-    try:
-        action()
-    except CLI_ERRORS as exc:
-        print(exc, file=sys.stderr)
-        raise typer.Exit(1) from None
-
-
-def parse_choice(value: str, valid: Sequence[str]) -> str:
-    normalized = value.lower()
-    if normalized not in valid:
-        choices = ", ".join(repr(item) for item in valid)
-        raise typer.BadParameter(f"'{value}' is not one of {choices}.")
-    return normalized
-
-
-def parse_notebook_type(value: str) -> NotebookType:
-    return cast(NotebookType, parse_choice(value, VALID_NOTEBOOK_TYPES))
-
-
-def parse_pkg_manager(value: str) -> PkgManager:
-    return cast(PkgManager, parse_choice(value, VALID_PKG_MANAGERS))
 
 
 @app.command()

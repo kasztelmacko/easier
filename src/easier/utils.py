@@ -1,4 +1,7 @@
 import tomllib
+import sys
+from typing import Callable, Sequence, cast
+import typer
 from pathlib import Path
 from typing import Any
 from easier.config import (
@@ -12,7 +15,39 @@ from easier.errors import (
     InvalidAnalysisConfigError,
     AnalysisConfigNotFoundError,
     AnalysisNotFoundError,
+    PackageManagerNotFoundError,
 )
+
+CLI_ERRORS = (
+    PackageManagerNotFoundError,
+    AnalysisNotFoundError,
+    AnalysisConfigNotFoundError,
+    InvalidAnalysisConfigError,
+    ValueError,
+)
+
+def run_command(action: Callable[[], None]) -> None:
+    try:
+        action()
+    except CLI_ERRORS as exc:
+        print(exc, file=sys.stderr)
+        raise typer.Exit(1) from None
+
+
+def parse_choice(value: str, valid: Sequence[str]) -> str:
+    normalized = value.lower()
+    if normalized not in valid:
+        choices = ", ".join(repr(item) for item in valid)
+        raise typer.BadParameter(f"'{value}' is not one of {choices}.")
+    return normalized
+
+
+def parse_notebook_type(value: str) -> NotebookType:
+    return cast(NotebookType, parse_choice(value, VALID_NOTEBOOK_TYPES))
+
+
+def parse_pkg_manager(value: str) -> PkgManager:
+    return cast(PkgManager, parse_choice(value, VALID_PKG_MANAGERS))
 
 def load_project_config(root: Path) -> tuple[NotebookType, PkgManager]:
     if not root.is_dir():

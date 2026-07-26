@@ -1,4 +1,5 @@
 from easier.initialization_objects import (
+    PrintPackageName,
     MakeDirectories,
     MakeFiles,
     InstallDependencies,
@@ -26,6 +27,8 @@ def create_project_scaffold(
     scaffold_root = project_root / analysis_name
 
     InstallDependencies(pkg_manager=pkg_manager).run(root=project_root)
+    PrintPackageName().run(root=scaffold_root)
+    RunBashCommands(pkg_manager=pkg_manager).run_help_message()
     MakeDirectories().run(root=scaffold_root)
     MakeFiles(notebook_type=notebook_type).run(root=scaffold_root)
     RunCurlCommands().run(root=scaffold_root)

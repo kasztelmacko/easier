@@ -8,6 +8,7 @@ dependencies = [
     "marimo",
     "pandas",
     "plotly",
+    "rich-pyfiglet>=2.0.1",
     "typer>=0.27.0",
 ]
 

@@ -16,10 +16,22 @@ from easier.config import (
     JUPYTER_SKILLS,
 )
 from easier.errors import PackageManagerNotFoundError
+from rich.console import Console
+from rich_pyfiglet import RichFiglet
 
 class Step:
     def run(self, root: Path) -> None:
         raise NotImplementedError("Subclasses must implement this method")
+
+class PrintPackageName(Step):
+    def run(self, root: Path) -> None:
+        console = Console()
+        rich_fig = RichFiglet(
+            "easier",
+            font="ansi_shadow",
+            colors=["white"],
+        )
+        console.print(rich_fig)
 
 
 class MakeDirectories(Step):
@@ -165,3 +177,8 @@ class RunBashCommands(Step):
             )
         else:
             raise ValueError(f"Invalid notebook type: {self.notebook_type}")
+
+    def run_help_message(self) -> None:
+        subprocess.run(
+            [self.pkg_manager, "run", "easier", "--help"]
+        )
