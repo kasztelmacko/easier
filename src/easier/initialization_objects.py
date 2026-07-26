@@ -8,6 +8,9 @@ from easier.config import (
     DEFAULT_PKG_MANAGER,
     NotebookType,
     PkgManager,
+    AiAgent,
+    AiLayout,
+    AI_LAYOUTS,
     EASIER_CONFIG_FILENAME,
     VALID_PKG_MANAGERS,
     SKILLS_DIR,
@@ -19,6 +22,14 @@ from easier.config import (
 )
 from easier.errors import PackageManagerNotFoundError
 from easier.cli_styling import print_figlet, print_normal_help, print_skills_help, print_start
+from easier.utils import CURSOR_RULE_FRONTMATTER, write_analysis_rules
+
+COPILOT_INSTRUCTIONS_FRONTMATTER = """\
+---
+applyTo: "**"
+---
+
+"""
 
 
 class PrintToConsole():
@@ -41,17 +52,20 @@ class PrintToConsole():
 
 
 class MakeDirectories():
+    def __init__(self, ai_agent: AiAgent) -> None:
+        self.layout: AiLayout = AI_LAYOUTS[ai_agent]
+
     def create(self, root: Path) -> None:
         root.mkdir()
         (root / "context").mkdir()
         (root / "context" / "other_context").mkdir()
-        (root / ".agents").mkdir()
-        (root / ".agents" / "prompts").mkdir()
-        (root / ".agents" / "skills").mkdir()
+        for relative in self.layout.root_dirs:
+            (root / relative).mkdir(parents=True, exist_ok=True)
 
 
 class MakeFiles():
-    def __init__(self, notebook_type: NotebookType = "marimo"):
+    def __init__(self, ai_agent: AiAgent, notebook_type: NotebookType = "marimo") -> None:
+        self.ai_agent: AiAgent = ai_agent
         self.notebook_type = notebook_type
 
     def create(self, root: Path) -> None:
@@ -61,10 +75,8 @@ class MakeFiles():
         (root / "context" / "analysis_assistant_notes.md").touch()
         (root / "context" / "analysis_user_notes.md").touch()
 
-        shutil.copy(
-            TEMPLATES_DIR / "analysis_rules.md",
-            root / ".agents" / "prompts" / "analysis_rules.md",
-        )
+        rules_body = (TEMPLATES_DIR / "analysis_rules.md").read_text(encoding="utf-8")
+        write_analysis_rules(root, self.ai_agent, rules_body)
 
         if self.notebook_type == "marimo":
             (root / "notebook.py").touch()
@@ -111,31 +123,76 @@ class InstallDependencies():
 
 
 class RunCurlCommands():
-    def __init__(self, notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE) -> None:
+    def __init__(
+        self,
+        ai_agent: AiAgent,
+        notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
+    ) -> None:
+        self.ai_agent: AiAgent = ai_agent
         self.notebook_type: NotebookType = notebook_type
 
     def create(self, root: Path) -> None:
-        if self.notebook_type == "marimo":
-            subprocess.run(
-                [
-                    "curl",
-                    "-fsSL",
-                    "https://docs.marimo.io/CLAUDE.md",
-                    "-o",
-                    str(root / ".agents" / "prompts" / "marimo.md"),
-                ],
-                check=True,
+        if self.notebook_type != "marimo":
+            return
+
+        content = self._download_marimo_docs()
+        self._write_marimo_docs(root, content)
+
+    def _download_marimo_docs(self) -> str:
+        result = subprocess.run(
+            [
+                "curl",
+                "-fsSL",
+                "https://docs.marimo.io/CLAUDE.md",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout
+
+    def _write_marimo_docs(self, root: Path, content: str) -> None:
+        if self.ai_agent == "cursor":
+            path = root / ".cursor" / "rules" / "marimo.mdc"
+            path.write_text(
+                CURSOR_RULE_FRONTMATTER.format(description="Marimo notebook guidance")
+                + content,
+                encoding="utf-8",
             )
+        elif self.ai_agent == "claude":
+            claude_path = root / "CLAUDE.md"
+            existing = claude_path.read_text(encoding="utf-8") if claude_path.is_file() else ""
+            claude_path.write_text(
+                existing.rstrip() + "\n\n---\n\n" + content.lstrip(),
+                encoding="utf-8",
+            )
+        elif self.ai_agent == "codex":
+            (root / ".agents" / "prompts" / "marimo.md").write_text(
+                content, encoding="utf-8"
+            )
+        elif self.ai_agent == "copilot":
+            path = root / ".github" / "instructions" / "marimo.instructions.md"
+            path.write_text(
+                COPILOT_INSTRUCTIONS_FRONTMATTER + content,
+                encoding="utf-8",
+            )
+        else:
+            raise ValueError(f"Invalid AI agent: {self.ai_agent}")
 
 
 class InstallSkills():
-    def __init__(self, notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE) -> None:
+    def __init__(
+        self,
+        ai_agent: AiAgent,
+        notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
+    ) -> None:
+        self.layout: AiLayout = AI_LAYOUTS[ai_agent]
         self.notebook_type: NotebookType = notebook_type
 
     def _copy_skills(self, root: Path, skill_names: tuple[str, ...]) -> None:
         for skill_name in skill_names:
             source = SKILLS_DIR / skill_name
-            destination = root / ".agents" / "skills" / skill_name
+            destination = root / self.layout.skills_dir / skill_name
             if not source.is_dir():
                 print(
                     f"Warning: packaged skill '{skill_name}' not found at {source}; "
@@ -157,15 +214,18 @@ class InstallSkills():
 class WriteConfig():
     def __init__(
         self,
+        ai_agent: AiAgent,
         notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
         pkg_manager: PkgManager = DEFAULT_PKG_MANAGER,
     ) -> None:
+        self.ai_agent: AiAgent = ai_agent
         self.notebook_type: NotebookType = notebook_type
         self.pkg_manager: PkgManager = pkg_manager
 
     def create(self, root: Path) -> None:
         config_path: Path = root / EASIER_CONFIG_FILENAME
         config_path.write_text(
+            f'ai_agent = "{self.ai_agent}"\n'
             f'notebook_type = "{self.notebook_type}"\n'
             f'pkg_manager = "{self.pkg_manager}"\n',
             encoding="utf-8",

@@ -13,6 +13,7 @@ from pathlib import Path
 from easier.config import (
     DEFAULT_NOTEBOOK_TYPE,
     DEFAULT_PKG_MANAGER,
+    AiAgent,
     NotebookType,
     PkgManager,
 )
@@ -20,6 +21,7 @@ from easier.config import (
 
 def create_analysis_scaffold(
     analysis_name: str,
+    ai_agent: AiAgent,
     notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
     pkg_manager: PkgManager = DEFAULT_PKG_MANAGER,
 ) -> None:
@@ -28,11 +30,19 @@ def create_analysis_scaffold(
 
     InstallDependencies(pkg_manager=pkg_manager).create(root=project_root)
     PrintToConsole().create()
-    MakeDirectories().create(root=analysis_root)
-    MakeFiles(notebook_type=notebook_type).create(root=analysis_root)
-    RunCurlCommands().create(root=analysis_root)
-    InstallSkills(notebook_type=notebook_type).create(root=analysis_root)
-    WriteConfig(notebook_type=notebook_type, pkg_manager=pkg_manager).create(root=analysis_root)
+    MakeDirectories(ai_agent=ai_agent).create(root=analysis_root)
+    MakeFiles(ai_agent=ai_agent, notebook_type=notebook_type).create(root=analysis_root)
+    RunCurlCommands(ai_agent=ai_agent, notebook_type=notebook_type).create(
+        root=analysis_root
+    )
+    InstallSkills(ai_agent=ai_agent, notebook_type=notebook_type).create(
+        root=analysis_root
+    )
+    WriteConfig(
+        ai_agent=ai_agent,
+        notebook_type=notebook_type,
+        pkg_manager=pkg_manager,
+    ).create(root=analysis_root)
 
 
 def start_analysis(analysis_name: str) -> None:

@@ -11,12 +11,19 @@ from easier.scaffold import (
 from easier.config import (
     VALID_NOTEBOOK_TYPES,
     VALID_PKG_MANAGERS,
+    VALID_AI_AGENTS,
     DEFAULT_NOTEBOOK_TYPE,
     DEFAULT_PKG_MANAGER,
+    AiAgent,
     NotebookType,
     PkgManager,
 )
-from easier.utils import run_command, parse_notebook_type, parse_pkg_manager
+from easier.utils import (
+    run_command,
+    parse_ai_agent,
+    parse_notebook_type,
+    parse_pkg_manager,
+)
 from easier.initialization_objects import PrintToConsole
 
 
@@ -39,6 +46,16 @@ def create(
     analysis_name: Annotated[
         str,
         typer.Argument(help="Folder name for analysis to create inside the current project"),
+    ],
+    ai_agent: Annotated[
+        AiAgent,
+        typer.Option(
+            "--ai",
+            "-a",
+            help="AI agent whose native skills/rules layout to scaffold",
+            parser=parse_ai_agent,
+            metavar="|".join(VALID_AI_AGENTS),
+        ),
     ],
     notebook_type: Annotated[
         NotebookType,
@@ -65,6 +82,7 @@ def create(
     run_command(
         lambda: create_analysis_scaffold(
             analysis_name=analysis_name,
+            ai_agent=ai_agent,
             notebook_type=notebook_type,
             pkg_manager=pkg_manager,
         )

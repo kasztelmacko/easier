@@ -7,11 +7,21 @@ from typing import Any
 from easier.config import (
     VALID_NOTEBOOK_TYPES,
     VALID_PKG_MANAGERS,
+    VALID_AI_AGENTS,
+    AiAgent,
     NotebookType,
     PkgManager,
     EASIER_CONFIG_FILENAME,
     SKILLS_DIR,
 )
+
+CURSOR_RULE_FRONTMATTER = """\
+---
+description: {description}
+alwaysApply: true
+---
+
+"""
 from easier.errors import (
     InvalidAnalysisConfigError,
     AnalysisConfigNotFoundError,
@@ -51,6 +61,32 @@ def parse_pkg_manager(value: str) -> PkgManager:
     return cast(PkgManager, parse_choice(value, VALID_PKG_MANAGERS))
 
 
+def parse_ai_agent(value: str) -> AiAgent:
+    return cast(AiAgent, parse_choice(value, VALID_AI_AGENTS))
+
+
+def write_analysis_rules(root: Path, ai_agent: AiAgent, body: str) -> None:
+    if ai_agent == "cursor":
+        path = root / ".cursor" / "rules" / "analysis_rules.mdc"
+        path.write_text(
+            CURSOR_RULE_FRONTMATTER.format(description="Analysis workspace conventions")
+            + body,
+            encoding="utf-8",
+        )
+    elif ai_agent == "claude":
+        (root / "CLAUDE.md").write_text(body, encoding="utf-8")
+    elif ai_agent == "codex":
+        (root / ".agents" / "prompts" / "analysis_rules.md").write_text(
+            body, encoding="utf-8"
+        )
+    elif ai_agent == "copilot":
+        (root / ".github" / "copilot-instructions.md").write_text(
+            body, encoding="utf-8"
+        )
+    else:
+        raise ValueError(f"Invalid AI agent: {ai_agent}")
+
+
 def read_skill_description(skill_name: str) -> str:
     """Return the one-line frontmatter description from a packaged skill."""
     skill_path = SKILLS_DIR / skill_name / "SKILL.md"
@@ -88,6 +124,7 @@ def load_analysis_config(root: Path) -> tuple[NotebookType, PkgManager]:
 
     notebook_type: NotebookType | None = data.get("notebook_type")
     pkg_manager: PkgManager | None = data.get("pkg_manager")
+    ai_agent = data.get("ai_agent")
 
     if notebook_type not in VALID_NOTEBOOK_TYPES:
         raise InvalidAnalysisConfigError(
@@ -98,6 +135,12 @@ def load_analysis_config(root: Path) -> tuple[NotebookType, PkgManager]:
         raise InvalidAnalysisConfigError(
             config_path=config_path,
             reason=f"invalid or missing pkg_manager {pkg_manager!r}",
+        )
+    # ai_agent is optional for scaffolds created before --ai existed
+    if ai_agent is not None and ai_agent not in VALID_AI_AGENTS:
+        raise InvalidAnalysisConfigError(
+            config_path=config_path,
+            reason=f"invalid ai_agent {ai_agent!r}",
         )
 
     return notebook_type, pkg_manager

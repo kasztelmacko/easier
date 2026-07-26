@@ -1,4 +1,4 @@
-from easier.config import VALID_NOTEBOOK_TYPES, VALID_PKG_MANAGERS
+from easier.config import VALID_NOTEBOOK_TYPES, VALID_PKG_MANAGERS, VALID_AI_AGENTS
 from pathlib import Path
 
 
@@ -50,8 +50,10 @@ class InvalidAnalysisConfigError(Exception):
         self.reason = reason
         valid_notebooks = ", ".join(VALID_NOTEBOOK_TYPES)
         valid_pkg_managers = ", ".join(VALID_PKG_MANAGERS)
+        valid_ai_agents = ", ".join(VALID_AI_AGENTS)
         super().__init__(
             f"Invalid analysis config at {config_path}: {reason}. "
-            f"Expected notebook_type in ({valid_notebooks}) and "
-            f"pkg_manager in ({valid_pkg_managers})."
+            f"Expected notebook_type in ({valid_notebooks}), "
+            f"pkg_manager in ({valid_pkg_managers}), "
+            f"and optional ai_agent in ({valid_ai_agents})."
         )
