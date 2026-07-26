@@ -19,12 +19,9 @@ from easier.errors import PackageManagerNotFoundError
 from rich.console import Console
 from rich_pyfiglet import RichFiglet
 
-class Step:
-    def run(self, root: Path) -> None:
-        raise NotImplementedError("Subclasses must implement this method")
 
-class PrintPackageName(Step):
-    def run(self, root: Path) -> None:
+class PrintPackageName():
+    def create(self, root: Path) -> None:
         console = Console()
         rich_fig = RichFiglet(
             "easier",
@@ -34,8 +31,8 @@ class PrintPackageName(Step):
         console.print(rich_fig)
 
 
-class MakeDirectories(Step):
-    def run(self, root: Path) -> None:
+class MakeDirectories():
+    def create(self, root: Path) -> None:
         root.mkdir()
         (root / "context").mkdir()
         (root / ".agents").mkdir()
@@ -43,11 +40,11 @@ class MakeDirectories(Step):
         (root / ".agents" / "skills").mkdir()
 
 
-class MakeFiles(Step):
+class MakeFiles():
     def __init__(self, notebook_type: NotebookType = "marimo"):
         self.notebook_type = notebook_type
 
-    def run(self, root: Path) -> None:
+    def create(self, root: Path) -> None:
         (root / "context" / "analysis_context.md").touch()
         (root / "context" / "analysis_progress.md").touch()
         (root / "context" / "analysis_notes.md").touch()
@@ -60,11 +57,11 @@ class MakeFiles(Step):
             raise ValueError(f"Invalid notebook type: {self.notebook_type}")
 
 
-class InstallDependencies(Step):
+class InstallDependencies():
     def __init__(self, pkg_manager: PkgManager = DEFAULT_PKG_MANAGER):
         self.pkg_manager: PkgManager = pkg_manager
 
-    def run(self, root: Path) -> None:
+    def create(self, root: Path) -> None:
         if not (root / "pyproject.toml").is_file():
             raise FileNotFoundError(
                 f"No pyproject.toml found in {root}. "
@@ -96,8 +93,8 @@ class InstallDependencies(Step):
             raise ValueError(f"Invalid package manager: {self.pkg_manager}")
 
 
-class RunCurlCommands(Step):
-    def run(self, root: Path) -> None:
+class RunCurlCommands():
+    def create(self, root: Path) -> None:
         subprocess.run(
             [
                 "curl",
@@ -110,7 +107,7 @@ class RunCurlCommands(Step):
         )
 
 
-class InstallSkills(Step):
+class InstallSkills():
     def __init__(self, notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE) -> None:
         self.notebook_type: NotebookType = notebook_type
 
@@ -127,7 +124,7 @@ class InstallSkills(Step):
                 continue
             shutil.copytree(source, destination, dirs_exist_ok=True)
 
-    def run(self, root: Path) -> None:
+    def create(self, root: Path) -> None:
         self._copy_skills(root, COMMON_SKILLS)
         if self.notebook_type == "marimo":
             self._copy_skills(root, MARIMO_SKILLS)
@@ -135,7 +132,7 @@ class InstallSkills(Step):
             self._copy_skills(root, JUPYTER_SKILLS)
 
 
-class WriteConfig(Step):
+class WriteConfig():
     def __init__(
         self,
         notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
@@ -144,7 +141,7 @@ class WriteConfig(Step):
         self.notebook_type: NotebookType = notebook_type
         self.pkg_manager: PkgManager = pkg_manager
 
-    def run(self, root: Path) -> None:
+    def create(self, root: Path) -> None:
         config_path: Path = root / EASIER_CONFIG_FILENAME
         config_path.write_text(
             f'notebook_type = "{self.notebook_type}"\n'
@@ -153,7 +150,7 @@ class WriteConfig(Step):
         )
 
 
-class RunBashCommands(Step):
+class RunBashCommands():
     def __init__(
         self,
         notebook_type: NotebookType = DEFAULT_NOTEBOOK_TYPE,
@@ -162,7 +159,12 @@ class RunBashCommands(Step):
         self.notebook_type: NotebookType = notebook_type
         self.pkg_manager: PkgManager = pkg_manager
 
-    def run(self, root: Path) -> None:
+    def create(self) -> None:
+        subprocess.run(
+            [self.pkg_manager, "run", "easier", "--help"]
+        )
+
+    def start(self, root: Path) -> None:
         if self.notebook_type == "marimo":
             subprocess.run(
                 [self.pkg_manager, "run", "marimo", "edit", "--watch", "notebook.py"],
@@ -177,8 +179,3 @@ class RunBashCommands(Step):
             )
         else:
             raise ValueError(f"Invalid notebook type: {self.notebook_type}")
-
-    def run_help_message(self) -> None:
-        subprocess.run(
-            [self.pkg_manager, "run", "easier", "--help"]
-        )
